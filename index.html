@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard de Prospección CRM 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a18;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 0.5px solid #e0dfd8;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-dot {
+      width: 28px;
+      height: 28px;
+      background: #3266ad;
+      border-radius: 7px;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 500;
+      color: #1a1a18;
+    }
+
+    .logo-sub {
+      font-size: 12px;
+      color: #888780;
+    }
+
+    .header-right {
+      font-size: 12px;
+      color: #888780;
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 500;
+      color: #1a1a18;
+      margin-bottom: 4px;
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: #888780;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-group label {
+      font-size: 13px;
+      color: #5F5E5A;
+    }
+
+    select {
+      font-size: 13px;
+      padding: 6px 10px;
+      border: 0.5px solid #d3d1c7;
+      border-radius: 8px;
+      background: #fff;
+      color: #1a1a18;
+      cursor: pointer;
+      outline: none;
+    }
+
+    select:focus { border-color: #3266ad; }
+
+    /* KPI Cards */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .row2 { grid-template-columns: 1fr !important; }
+    }
+
+    .mc {
+      background: #fff;
+      border: 0.5px solid #e0dfd8;
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+    }
+
+    .mc-label {
+      font-size: 11px;
+      color: #888780;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .mc-val {
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1;
+      color: #1a1a18;
+    }
+
+    .mc-val.alert { color: #A32D2D; }
+    .mc-val.success { color: #3B6D11; }
+
+    .mc-sub {
+      font-size: 11px;
+      color: #888780;
+      margin-top: 4px;
+    }
+
+    .mc-alert-text {
+      font-size: 11px;
+      color: #A32D2D;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Chart row */
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 0.5px solid #e0dfd8;
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #5F5E5A;
+      margin-bottom: 14px;
+    }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; margin-top: 4px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      font-size: 11px;
+      font-weight: 500;
+      color: #888780;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 0.5px solid #e0dfd8;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 10px;
+      border-bottom: 0.5px solid #f1f0e8;
+      color: #1a1a18;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafaf8; }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge-psp    { background: #E6F1FB; color: #0C447C; }
+    .badge-bus    { background: #EAF3DE; color: #27500A; }
+    .badge-otros  { background: #F1EFE8; color: #5F5E5A; }
+    .badge-alert  { background: #FCEBEB; color: #791F1F; }
+    .badge-warn   { background: #FAEEDA; color: #633806; }
+    .badge-ok     { background: #EAF3DE; color: #27500A; }
+
+    .tarea-text {
+      font-size: 11px;
+      color: #5F5E5A;
+      max-width: 220px;
+    }
+
+    .count-info {
+      font-size: 11px;
+      color: #888780;
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .sheet-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .sheet-tab {
+      font-size: 12px;
+      padding: 5px 14px;
+      border: 0.5px solid #d3d1c7;
+      border-radius: 20px;
+      background: #fff;
+      color: #5F5E5A;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sheet-tab.active {
+      background: #3266ad;
+      border-color: #3266ad;
+      color: #fff;
+    }
+
+    .sheet-tab:hover:not(.active) { background: #f1f0e8; }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 11px;
+      color: #b4b2a9;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div>
+      <div class="logo-text">CRM Dashboard</div>
+      <div class="logo-sub">Seguimiento de prospección</div>
+    </div>
+  </div>
+  <div class="header-right" id="fechaHoy"></div>
+</header>
+
+<div class="main">
+  <h1 class="page-title">Dashboard de Prospección 2026</h1>
+  <p class="page-sub">Vista consolidada de todos los prospectos activos por empresa</p>
+
+  <!-- Sheet tabs -->
+  <div class="sheet-tabs">
+    <button class="sheet-tab active" onclick="switchSheet('PERSONAL')">CRM Personal</button>
+    <button class="sheet-tab" onclick="switchSheet('CERTHIA')">CRM Certhia</button>
+    <button class="sheet-tab" onclick="switchSheet('PIXEL')">CRM Pixel</button>
+    <button class="sheet-tab" onclick="switchSheet('ARANDA')">CRM Aranda y Aranda</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-group">
+      <label>Fuente:</label>
+      <select id="fuenteFilter" onchange="renderAll()">
+        <option value="TODOS">Todos</option>
+        <option value="PSP">PSP</option>
+        <option value="BÚSQUEDA">Búsqueda</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Días sin contacto:</label>
+      <select id="diasFilter" onchange="renderAll()">
+        <option value="TODOS">Todos</option>
+        <option value="30">+30 días</option>
+        <option value="60">+60 días</option>
+        <option value="90">+90 días</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="metrics">
+    <div class="mc">
+      <div class="mc-label">Total prospectos</div>
+      <div class="mc-val" id="kpi-total">—</div>
+      <div class="mc-sub" id="kpi-total-sub">hoja activa</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">Requieren seguimiento</div>
+      <div class="mc-val alert" id="kpi-follow">—</div>
+      <div class="mc-alert-text">+10 días sin contacto</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">Fuente PSP</div>
+      <div class="mc-val" id="kpi-psp">—</div>
+      <div class="mc-sub" id="kpi-psp-pct">—</div>
+    </div>
+    <div class="mc">
+      <div class="mc-label">Fuente Búsqueda</div>
+      <div class="mc-val" id="kpi-bus">—</div>
+      <div class="mc-sub" id="kpi-bus-pct">—</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row2">
+    <div class="card">
+      <div class="card-title">Actividad mensual — contactos</div>
+      <div style="position:relative; width:100%; height:200px;">
+        <canvas id="chartMensual" role="img" aria-label="Actividad mensual de prospectos contactados"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Distribución de tareas siguientes</div>
+      <div style="position:relative; width:100%; height:200px;">
+        <canvas id="chartTareas" role="img" aria-label="Distribución de tareas pendientes por categoría"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-title">
+      Prospectos activos <span class="count-info" id="countInfo"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Prospecto</th>
+            <th>Empresa</th>
+            <th>Fuente</th>
+            <th>Último contacto</th>
+            <th>Días sin contacto</th>
+            <th>Tarea siguiente</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>Dashboard CRM · Actualizado junio 2026</footer>
+
+<script>
+const TODAY = new Date('2026-06-16');
+document.getElementById('fechaHoy').textContent = TODAY.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const SHEETS = {
+  PERSONAL: {
+    label: 'CRM Personal',
+    rows: [
+      ['Leidy Rodriguez','BAKELS','PSP','2026-03-19','TALLER EJECUTADO'],
+      ['JANINEN','BAKELS','—','2026-03-26','Propuesta de coaching'],
+      ['Erika Palomino','ENVASES LIMA','PSP','2025-10-07','OBTENER DEMO'],
+      ['Carlos Arias','INKA TUBOS','PSP','2026-01-06','Feedback Taller Full Day'],
+      ['Ana Maria Gomez','INKA TUBOS','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Valeria Hurtado','OVERAL','PSP','2025-10-07','Obtener feedback de propuesta'],
+      ['Minerva Becerra','WERNER MÉXICO','PSP','2025-09-16','Obtener fecha de DEMO'],
+      ['Omar Guillem','Georg Fischer Latam','PSP','2025-10-07','OBTENER DEMO'],
+      ['María José Pérez','EDESA','PSP','2025-10-07','OBTENER DEMO'],
+      ['Diego Crespo','Mapei Perú','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Franco Pescoran','SIGELEC','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Carlos Recavarren','MAQUIPERÚ','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Juan Carlos Ugarte','CREDITEX','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Jose Luna','GAMMA CARGO','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Jorge Quispe','FALUMSA','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Paul Helden','SWAGELOK','PSP','2026-04-01','Pendiente definición de taller'],
+      ['Rocio Sotelo','SPACEWISE','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Sylvia Rubio','Schryver Logistics','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Ricardo De Vettor','TecProMin Perú','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Eduardo Cintora','MIMAGT','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Luis Felipe Rondon','CETEMIN','PSP','2026-01-15','Feedback Taller Full Day'],
+      ['Sadith Martinez','MOVITECNICA','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Maicol López','MOVITECNICA','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Marcela Villa','EL PANOL','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Carlos Quispe','CBS','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Mónica','CASA INGLESA','BÚSQUEDA','2025-09-11','OBTENER DEMO'],
+      ['Patricia Fuentes','GECAMIN','BÚSQUEDA','2025-08-07','Feedback demo y propuesta'],
+      ['Elita Santillan','LA VIGA','BÚSQUEDA','2025-10-14','Feedback Taller Full Day'],
+      ['Natalie Lizano','MODASA','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['Daniel de la puente','MARSH','BÚSQUEDA','2025-10-14','Feedback Taller Full Day'],
+      ['Cecilia Ávalos','CORETECH','PSP','2025-10-14','Feedback Taller Full Day'],
+      ['(sin nombre)','EAGLES CONSULTING','PSP','2025-09-09','Orden de compra recibida'],
+      ['Alicia del Ángel','CHAPACINTA MÉXICO','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
+      ['Jorge Navas','GRUPO ACERTA','BÚSQUEDA','2025-09-25','—'],
+      ['Pastor','NSK','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
+      ['Raúl Ríos','NSK','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
+      ['Karen Porras','PBS','PSP','2025-10-07','Conseguir reunión DEMO'],
+      ['Lorena Flores','DATAFAST','PSP','2025-10-07','Conseguir reunión DEMO'],
+      ['Annabella Villa','PANASA','PSP','2025-10-07','Primera sesión coaching'],
+      ['Marcela Sepulveda','HDLAO','BÚSQUEDA','2025-10-09','Feedback DEMO'],
+      ['Ariadna Macias','TECOPESCA','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
+    ]
+  },
+  CERTHIA: {
+    label: 'CRM Certhia',
+    rows: [
+      ['Jaime Acevedo','GRUPO ATLANTIC','—','2025-08-07','Completar ficha de cotización'],
+      ['Wesly Paucar','COMERCIAL FOODS','—','2026-03-01','Cotizar siguiente auditoría'],
+    ]
+  },
+  PIXEL: {
+    label: 'CRM Pixel',
+    rows: [
+      ['Yamila','MAPRIAL','—','2025-08-19','Conseguir reunión de presentación'],
+      ['Erick J. Lamas','MAPRIAL','—','2025-08-19','Conseguir reunión de presentación'],
+    ]
+  },
+  ARANDA: {
+    label: 'CRM Aranda y Aranda',
+    rows: [
+      ['Karina Holguin','LA COLONIAL FABRICA DE HILOS','—','2025-08-05','Info para cotización y propuestas'],
+      ['Josie Lewis','MICHELL','—','2025-09-09','Elección de fecha DEMO online'],
+    ]
+  }
+};
+
+let activeSheet = 'PERSONAL';
+let chartM, chartT;
+
+function daysDiff(dateStr) {
+  return Math.round((TODAY - new Date(dateStr)) / (1000*60*60*24));
+}
+
+function switchSheet(key) {
+  activeSheet = key;
+  document.querySelectorAll('.sheet-tab').forEach((t,i) => {
+    t.classList.toggle('active', Object.keys(SHEETS)[i] === key);
+  });
+  document.getElementById('fuenteFilter').value = 'TODOS';
+  document.getElementById('diasFilter').value = 'TODOS';
+  renderAll();
+}
+
+function getFiltered() {
+  const fuente = document.getElementById('fuenteFilter').value;
+  const dias = document.getElementById('diasFilter').value;
+  let data = SHEETS[activeSheet].rows;
+  if (fuente !== 'TODOS') data = data.filter(r => r[2] === fuente);
+  if (dias !== 'TODOS') data = data.filter(r => daysDiff(r[3]) >= parseInt(dias));
+  return data;
+}
+
+function renderAll() {
+  const data = getFiltered();
+  updateKPIs(data);
+  renderTable(data);
+  renderCharts(data);
+}
+
+function updateKPIs(data) {
+  const total = data.length;
+  const follow = data.filter(r => daysDiff(r[3]) > 10).length;
+  const psp = data.filter(r => r[2] === 'PSP').length;
+  const bus = data.filter(r => r[2] === 'BÚSQUEDA').length;
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-total-sub').textContent = SHEETS[activeSheet].label;
+  document.getElementById('kpi-follow').textContent = follow;
+  document.getElementById('kpi-psp').textContent = psp;
+  document.getElementById('kpi-psp-pct').textContent = total ? Math.round(psp/total*100) + '% del total' : '—';
+  document.getElementById('kpi-bus').textContent = bus;
+  document.getElementById('kpi-bus-pct').textContent = total ? Math.round(bus/total*100) + '% del total' : '—';
+}
+
+function renderTable(data) {
+  document.getElementById('countInfo').textContent = `(${data.length} registros)`;
+  const tbody = document.getElementById('tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#888780; padding:2rem">Sin registros para los filtros seleccionados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((r, i) => {
+    const dias = daysDiff(r[3]);
+    const diasClass = dias > 90 ? 'badge-alert' : dias > 30 ? 'badge-warn' : 'badge-ok';
+    const fuenteClass = r[2]==='PSP' ? 'badge-psp' : r[2]==='BÚSQUEDA' ? 'badge-bus' : 'badge-otros';
+    return `<tr>
+      <td style="color:#b4b2a9; font-size:11px">${i+1}</td>
+      <td style="font-weight:500">${r[0]}</td>
+      <td>${r[1]}</td>
+      <td><span class="badge ${fuenteClass}">${r[2]}</span></td>
+      <td style="color:#888780; font-size:12px">${r[3]}</td>
+      <td><span class="badge ${diasClass}">${dias} días</span></td>
+      <td class="tarea-text">${r[4]}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCharts(data) {
+  // Monthly
+  const monthly = {};
+  data.forEach(r => {
+    const d = new Date(r[3]);
+    const key = d.toLocaleDateString('es-PE', {month:'short', year:'2-digit'});
+    monthly[key] = (monthly[key]||0) + 1;
+  });
+  const mLabels = Object.keys(monthly);
+  const mData = Object.values(monthly);
+
+  if (chartM) chartM.destroy();
+  chartM = new Chart(document.getElementById('chartMensual'), {
+    type: 'bar',
+    data: {
+      labels: mLabels,
+      datasets: [{ data: mData, backgroundColor: '#3266ad', borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font:{size:11}, color:'#888780', autoSkip: false, maxRotation: 45 }, grid: { display: false } },
+        y: { ticks: { font:{size:11}, color:'#888780', stepSize: 5 }, grid: { color:'rgba(136,135,128,0.15)' } }
+      }
+    }
+  });
+
+  // Tasks
+  const taskMap = {};
+  data.forEach(r => {
+    const t = r[4].trim();
+    const key = t.toLowerCase().includes('feedback taller') ? 'Feedback Taller'
+               : t.toLowerCase().includes('demo') ? 'Demo'
+               : t.toLowerCase().includes('coaching') ? 'Coaching'
+               : t.toLowerCase().includes('orden') || t.toLowerCase().includes('taller ejecutado') ? 'Cierre/Ejecutado'
+               : 'Otros';
+    taskMap[key] = (taskMap[key]||0)+1;
+  });
+
+  if (chartT) chartT.destroy();
+  chartT = new Chart(document.getElementById('chartTareas'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(taskMap),
+      datasets: [{
+        data: Object.values(taskMap),
+        backgroundColor: ['#3266ad','#1D9E75','#534AB7','#3B6D11','#888780'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '55%',
+      plugins: {
+        legend: { position: 'right', labels: { font:{size:11}, color:'#5F5E5A', boxWidth:10, padding:10 } }
+      }
+    }
+  });
+}
+
+renderAll();
+</script>
+</body>
+</html>
