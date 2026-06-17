@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard de Prospección CRM 2026</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -27,53 +28,46 @@
       z-index: 10;
     }
 
-    .logo {
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-dot { width: 28px; height: 28px; background: #3266ad; border-radius: 7px; }
+    .logo-text { font-size: 15px; font-weight: 500; color: #1a1a18; }
+    .logo-sub { font-size: 12px; color: #888780; }
+    .header-right { font-size: 12px; color: #888780; text-align: right; }
+    .header-sync { font-size: 11px; color: #3B6D11; margin-top: 2px; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+    .page-title { font-size: 20px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+    .page-sub { font-size: 13px; color: #888780; margin-bottom: 1.5rem; }
+
+    /* Loading */
+    .loading {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      padding: 4rem;
+      gap: 16px;
     }
-
-    .logo-dot {
-      width: 28px;
-      height: 28px;
-      background: #3266ad;
-      border-radius: 7px;
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #e0dfd8;
+      border-top-color: #3266ad;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #888780; }
 
-    .logo-text {
-      font-size: 15px;
-      font-weight: 500;
-      color: #1a1a18;
-    }
-
-    .logo-sub {
-      font-size: 12px;
-      color: #888780;
-    }
-
-    .header-right {
-      font-size: 12px;
-      color: #888780;
-    }
-
-    .main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1.5rem 2rem 3rem;
-    }
-
-    .page-title {
-      font-size: 20px;
-      font-weight: 500;
-      color: #1a1a18;
-      margin-bottom: 4px;
-    }
-
-    .page-sub {
+    .error-box {
+      background: #FCEBEB;
+      border: 0.5px solid #F7C1C1;
+      border-radius: 12px;
+      padding: 1.5rem;
+      color: #791F1F;
       font-size: 13px;
-      color: #888780;
-      margin-bottom: 1.5rem;
+      margin: 2rem 0;
     }
+    .error-box strong { display: block; margin-bottom: 6px; font-size: 14px; }
 
     /* Filters */
     .filters {
@@ -83,18 +77,8 @@
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
     }
-
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .filter-group label {
-      font-size: 13px;
-      color: #5F5E5A;
-    }
-
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-group label { font-size: 13px; color: #5F5E5A; }
     select {
       font-size: 13px;
       padding: 6px 10px;
@@ -105,172 +89,81 @@
       cursor: pointer;
       outline: none;
     }
-
     select:focus { border-color: #3266ad; }
 
-    /* KPI Cards */
+    .btn-refresh {
+      font-size: 12px;
+      padding: 6px 14px;
+      border: 0.5px solid #d3d1c7;
+      border-radius: 8px;
+      background: #fff;
+      color: #3266ad;
+      cursor: pointer;
+      margin-left: auto;
+    }
+    .btn-refresh:hover { background: #E6F1FB; }
+
+    /* KPIs */
     .metrics {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       margin-bottom: 1.5rem;
     }
-
     @media (max-width: 768px) {
       .metrics { grid-template-columns: repeat(2, 1fr); }
       .row2 { grid-template-columns: 1fr !important; }
     }
-
     .mc {
       background: #fff;
       border: 0.5px solid #e0dfd8;
       border-radius: 12px;
       padding: 1.1rem 1.25rem;
     }
-
-    .mc-label {
-      font-size: 11px;
-      color: #888780;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 6px;
-    }
-
-    .mc-val {
-      font-size: 28px;
-      font-weight: 500;
-      line-height: 1;
-      color: #1a1a18;
-    }
-
+    .mc-label { font-size: 11px; color: #888780; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .mc-val { font-size: 28px; font-weight: 500; line-height: 1; color: #1a1a18; }
     .mc-val.alert { color: #A32D2D; }
-    .mc-val.success { color: #3B6D11; }
+    .mc-sub { font-size: 11px; color: #888780; margin-top: 4px; }
+    .mc-alert-text { font-size: 11px; color: #A32D2D; margin-top: 4px; font-weight: 500; }
 
-    .mc-sub {
-      font-size: 11px;
-      color: #888780;
-      margin-top: 4px;
-    }
-
-    .mc-alert-text {
-      font-size: 11px;
-      color: #A32D2D;
-      margin-top: 4px;
-      font-weight: 500;
-    }
-
-    /* Chart row */
-    .row2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
+    /* Charts */
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .card {
       background: #fff;
       border: 0.5px solid #e0dfd8;
       border-radius: 12px;
       padding: 1.1rem 1.25rem;
     }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: #5F5E5A;
-      margin-bottom: 14px;
-    }
+    .card-title { font-size: 13px; font-weight: 500; color: #5F5E5A; margin-bottom: 14px; }
+    .count-info { font-size: 11px; color: #888780; font-weight: 400; margin-left: 6px; }
 
     /* Table */
     .table-wrap { overflow-x: auto; margin-top: 4px; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th {
-      font-size: 11px;
-      font-weight: 500;
-      color: #888780;
-      text-align: left;
-      padding: 8px 10px;
+      font-size: 11px; font-weight: 500; color: #888780;
+      text-align: left; padding: 8px 10px;
       border-bottom: 0.5px solid #e0dfd8;
       white-space: nowrap;
     }
-
-    td {
-      padding: 9px 10px;
-      border-bottom: 0.5px solid #f1f0e8;
-      color: #1a1a18;
-      vertical-align: middle;
-    }
-
+    td { padding: 9px 10px; border-bottom: 0.5px solid #f1f0e8; color: #1a1a18; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #fafaf8; }
 
     .badge {
-      display: inline-block;
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 5px;
-      font-weight: 500;
-      white-space: nowrap;
+      display: inline-block; font-size: 10px;
+      padding: 3px 8px; border-radius: 5px;
+      font-weight: 500; white-space: nowrap;
     }
-
     .badge-psp    { background: #E6F1FB; color: #0C447C; }
     .badge-bus    { background: #EAF3DE; color: #27500A; }
     .badge-otros  { background: #F1EFE8; color: #5F5E5A; }
     .badge-alert  { background: #FCEBEB; color: #791F1F; }
     .badge-warn   { background: #FAEEDA; color: #633806; }
     .badge-ok     { background: #EAF3DE; color: #27500A; }
+    .tarea-text   { font-size: 11px; color: #5F5E5A; max-width: 220px; }
 
-    .tarea-text {
-      font-size: 11px;
-      color: #5F5E5A;
-      max-width: 220px;
-    }
-
-    .count-info {
-      font-size: 11px;
-      color: #888780;
-      font-weight: 400;
-      margin-left: 6px;
-    }
-
-    .sheet-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-
-    .sheet-tab {
-      font-size: 12px;
-      padding: 5px 14px;
-      border: 0.5px solid #d3d1c7;
-      border-radius: 20px;
-      background: #fff;
-      color: #5F5E5A;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .sheet-tab.active {
-      background: #3266ad;
-      border-color: #3266ad;
-      color: #fff;
-    }
-
-    .sheet-tab:hover:not(.active) { background: #f1f0e8; }
-
-    footer {
-      text-align: center;
-      padding: 2rem;
-      font-size: 11px;
-      color: #b4b2a9;
-    }
+    footer { text-align: center; padding: 2rem; font-size: 11px; color: #b4b2a9; }
   </style>
 </head>
 <body>
@@ -283,207 +176,216 @@
       <div class="logo-sub">Seguimiento de prospección</div>
     </div>
   </div>
-  <div class="header-right" id="fechaHoy"></div>
+  <div class="header-right">
+    <div id="fechaHoy"></div>
+    <div class="header-sync" id="syncStatus">⟳ Cargando datos...</div>
+  </div>
 </header>
 
 <div class="main">
   <h1 class="page-title">Dashboard de Prospección 2026</h1>
-  <p class="page-sub">Vista consolidada de todos los prospectos activos por empresa</p>
+  <p class="page-sub">Datos en tiempo real desde Google Sheets · Se actualiza al abrir la página</p>
 
-  <!-- Sheet tabs -->
-  <div class="sheet-tabs">
-    <button class="sheet-tab active" onclick="switchSheet('PERSONAL')">CRM Personal</button>
-    <button class="sheet-tab" onclick="switchSheet('CERTHIA')">CRM Certhia</button>
-    <button class="sheet-tab" onclick="switchSheet('PIXEL')">CRM Pixel</button>
-    <button class="sheet-tab" onclick="switchSheet('ARANDA')">CRM Aranda y Aranda</button>
+  <!-- Loading state -->
+  <div class="loading" id="loadingState">
+    <div class="spinner"></div>
+    <div class="loading-text">Conectando con Google Sheets...</div>
   </div>
 
-  <!-- Filters -->
-  <div class="filters">
-    <div class="filter-group">
-      <label>Fuente:</label>
-      <select id="fuenteFilter" onchange="renderAll()">
-        <option value="TODOS">Todos</option>
-        <option value="PSP">PSP</option>
-        <option value="BÚSQUEDA">Búsqueda</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Días sin contacto:</label>
-      <select id="diasFilter" onchange="renderAll()">
-        <option value="TODOS">Todos</option>
-        <option value="30">+30 días</option>
-        <option value="60">+60 días</option>
-        <option value="90">+90 días</option>
-      </select>
-    </div>
+  <!-- Error state -->
+  <div class="error-box" id="errorState" style="display:none">
+    <strong>No se pudo cargar los datos</strong>
+    Verifica que tu Google Sheets esté publicado correctamente en Archivo → Publicar en la web.
+    <br><br>
+    <button class="btn-refresh" onclick="loadData()">Reintentar</button>
   </div>
 
-  <!-- KPIs -->
-  <div class="metrics">
-    <div class="mc">
-      <div class="mc-label">Total prospectos</div>
-      <div class="mc-val" id="kpi-total">—</div>
-      <div class="mc-sub" id="kpi-total-sub">hoja activa</div>
-    </div>
-    <div class="mc">
-      <div class="mc-label">Requieren seguimiento</div>
-      <div class="mc-val alert" id="kpi-follow">—</div>
-      <div class="mc-alert-text">+10 días sin contacto</div>
-    </div>
-    <div class="mc">
-      <div class="mc-label">Fuente PSP</div>
-      <div class="mc-val" id="kpi-psp">—</div>
-      <div class="mc-sub" id="kpi-psp-pct">—</div>
-    </div>
-    <div class="mc">
-      <div class="mc-label">Fuente Búsqueda</div>
-      <div class="mc-val" id="kpi-bus">—</div>
-      <div class="mc-sub" id="kpi-bus-pct">—</div>
-    </div>
-  </div>
+  <!-- Dashboard (hidden until data loads) -->
+  <div id="dashContent" style="display:none">
 
-  <!-- Charts -->
-  <div class="row2">
-    <div class="card">
-      <div class="card-title">Actividad mensual — contactos</div>
-      <div style="position:relative; width:100%; height:200px;">
-        <canvas id="chartMensual" role="img" aria-label="Actividad mensual de prospectos contactados"></canvas>
+    <div class="filters">
+      <div class="filter-group">
+        <label>Fuente:</label>
+        <select id="fuenteFilter" onchange="renderAll()">
+          <option value="TODOS">Todos</option>
+          <option value="PSP">PSP</option>
+          <option value="BÚSQUEDA">Búsqueda</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Días sin contacto:</label>
+        <select id="diasFilter" onchange="renderAll()">
+          <option value="TODOS">Todos</option>
+          <option value="30">+30 días</option>
+          <option value="60">+60 días</option>
+          <option value="90">+90 días</option>
+        </select>
+      </div>
+      <button class="btn-refresh" onclick="loadData()">↻ Actualizar datos</button>
+    </div>
+
+    <div class="metrics">
+      <div class="mc">
+        <div class="mc-label">Total prospectos</div>
+        <div class="mc-val" id="kpi-total">—</div>
+        <div class="mc-sub">hoja CRM Personal</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">Requieren seguimiento</div>
+        <div class="mc-val alert" id="kpi-follow">—</div>
+        <div class="mc-alert-text">+10 días sin contacto</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">Fuente PSP</div>
+        <div class="mc-val" id="kpi-psp">—</div>
+        <div class="mc-sub" id="kpi-psp-pct">—</div>
+      </div>
+      <div class="mc">
+        <div class="mc-label">Fuente Búsqueda</div>
+        <div class="mc-val" id="kpi-bus">—</div>
+        <div class="mc-sub" id="kpi-bus-pct">—</div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-title">Distribución de tareas siguientes</div>
-      <div style="position:relative; width:100%; height:200px;">
-        <canvas id="chartTareas" role="img" aria-label="Distribución de tareas pendientes por categoría"></canvas>
+
+    <div class="row2">
+      <div class="card">
+        <div class="card-title">Actividad mensual — contactos</div>
+        <div style="position:relative; width:100%; height:200px;">
+          <canvas id="chartMensual" role="img" aria-label="Actividad mensual de prospectos"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Distribución de tareas siguientes</div>
+        <div style="position:relative; width:100%; height:200px;">
+          <canvas id="chartTareas" role="img" aria-label="Distribución de tareas pendientes"></canvas>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Table -->
-  <div class="card">
-    <div class="card-title">
-      Prospectos activos <span class="count-info" id="countInfo"></span>
+    <div class="card">
+      <div class="card-title">
+        Prospectos activos
+        <span class="count-info" id="countInfo"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Prospecto</th>
+              <th>Empresa</th>
+              <th>Fuente</th>
+              <th>Último contacto</th>
+              <th>Días sin contacto</th>
+              <th>Tarea siguiente</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Prospecto</th>
-            <th>Empresa</th>
-            <th>Fuente</th>
-            <th>Último contacto</th>
-            <th>Días sin contacto</th>
-            <th>Tarea siguiente</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </div>
+
+  </div><!-- /dashContent -->
 </div>
 
-<footer>Dashboard CRM · Actualizado junio 2026</footer>
+<footer>Dashboard CRM · Datos en tiempo real desde Google Sheets</footer>
 
 <script>
-const TODAY = new Date('2026-06-16');
-document.getElementById('fechaHoy').textContent = TODAY.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
+// Si cambias de hoja en Google Sheets, reemplaza solo esta URL
+const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSxu9jDdj1avcSfCB_9tG6KmtY3I6QP0HHifzk-kG4AY818-vGao6aU0dIYVQk1TA/pub?output=csv';
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
-const SHEETS = {
-  PERSONAL: {
-    label: 'CRM Personal',
-    rows: [
-      ['Leidy Rodriguez','BAKELS','PSP','2026-03-19','TALLER EJECUTADO'],
-      ['JANINEN','BAKELS','—','2026-03-26','Propuesta de coaching'],
-      ['Erika Palomino','ENVASES LIMA','PSP','2025-10-07','OBTENER DEMO'],
-      ['Carlos Arias','INKA TUBOS','PSP','2026-01-06','Feedback Taller Full Day'],
-      ['Ana Maria Gomez','INKA TUBOS','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Valeria Hurtado','OVERAL','PSP','2025-10-07','Obtener feedback de propuesta'],
-      ['Minerva Becerra','WERNER MÉXICO','PSP','2025-09-16','Obtener fecha de DEMO'],
-      ['Omar Guillem','Georg Fischer Latam','PSP','2025-10-07','OBTENER DEMO'],
-      ['María José Pérez','EDESA','PSP','2025-10-07','OBTENER DEMO'],
-      ['Diego Crespo','Mapei Perú','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Franco Pescoran','SIGELEC','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Carlos Recavarren','MAQUIPERÚ','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Juan Carlos Ugarte','CREDITEX','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Jose Luna','GAMMA CARGO','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Jorge Quispe','FALUMSA','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Paul Helden','SWAGELOK','PSP','2026-04-01','Pendiente definición de taller'],
-      ['Rocio Sotelo','SPACEWISE','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Sylvia Rubio','Schryver Logistics','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Ricardo De Vettor','TecProMin Perú','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Eduardo Cintora','MIMAGT','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Luis Felipe Rondon','CETEMIN','PSP','2026-01-15','Feedback Taller Full Day'],
-      ['Sadith Martinez','MOVITECNICA','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Maicol López','MOVITECNICA','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Marcela Villa','EL PANOL','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Carlos Quispe','CBS','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Mónica','CASA INGLESA','BÚSQUEDA','2025-09-11','OBTENER DEMO'],
-      ['Patricia Fuentes','GECAMIN','BÚSQUEDA','2025-08-07','Feedback demo y propuesta'],
-      ['Elita Santillan','LA VIGA','BÚSQUEDA','2025-10-14','Feedback Taller Full Day'],
-      ['Natalie Lizano','MODASA','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['Daniel de la puente','MARSH','BÚSQUEDA','2025-10-14','Feedback Taller Full Day'],
-      ['Cecilia Ávalos','CORETECH','PSP','2025-10-14','Feedback Taller Full Day'],
-      ['(sin nombre)','EAGLES CONSULTING','PSP','2025-09-09','Orden de compra recibida'],
-      ['Alicia del Ángel','CHAPACINTA MÉXICO','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
-      ['Jorge Navas','GRUPO ACERTA','BÚSQUEDA','2025-09-25','—'],
-      ['Pastor','NSK','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
-      ['Raúl Ríos','NSK','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
-      ['Karen Porras','PBS','PSP','2025-10-07','Conseguir reunión DEMO'],
-      ['Lorena Flores','DATAFAST','PSP','2025-10-07','Conseguir reunión DEMO'],
-      ['Annabella Villa','PANASA','PSP','2025-10-07','Primera sesión coaching'],
-      ['Marcela Sepulveda','HDLAO','BÚSQUEDA','2025-10-09','Feedback DEMO'],
-      ['Ariadna Macias','TECOPESCA','BÚSQUEDA','2025-10-14','Conseguir reunión DEMO'],
-    ]
-  },
-  CERTHIA: {
-    label: 'CRM Certhia',
-    rows: [
-      ['Jaime Acevedo','GRUPO ATLANTIC','—','2025-08-07','Completar ficha de cotización'],
-      ['Wesly Paucar','COMERCIAL FOODS','—','2026-03-01','Cotizar siguiente auditoría'],
-    ]
-  },
-  PIXEL: {
-    label: 'CRM Pixel',
-    rows: [
-      ['Yamila','MAPRIAL','—','2025-08-19','Conseguir reunión de presentación'],
-      ['Erick J. Lamas','MAPRIAL','—','2025-08-19','Conseguir reunión de presentación'],
-    ]
-  },
-  ARANDA: {
-    label: 'CRM Aranda y Aranda',
-    rows: [
-      ['Karina Holguin','LA COLONIAL FABRICA DE HILOS','—','2025-08-05','Info para cotización y propuestas'],
-      ['Josie Lewis','MICHELL','—','2025-09-09','Elección de fecha DEMO online'],
-    ]
-  }
-};
+const TODAY = new Date();
+document.getElementById('fechaHoy').textContent =
+  TODAY.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-let activeSheet = 'PERSONAL';
+let allData = [];
 let chartM, chartT;
 
+// ── COLUMNAS ESPERADAS (basadas en tu Excel) ──────────────────────────────────
+// Nombre | Empresa | Email | Teléfono | Fuente | Fecha último contacto | Seguimiento | Tarea | Cierre
+const COL = { nombre:0, empresa:1, fuente:4, fecha:5, tarea:7, cierre:8 };
+
 function daysDiff(dateStr) {
-  return Math.round((TODAY - new Date(dateStr)) / (1000*60*60*24));
+  if (!dateStr) return 9999;
+  const d = new Date(dateStr);
+  if (isNaN(d)) return 9999;
+  return Math.round((TODAY - d) / (1000*60*60*24));
 }
 
-function switchSheet(key) {
-  activeSheet = key;
-  document.querySelectorAll('.sheet-tab').forEach((t,i) => {
-    t.classList.toggle('active', Object.keys(SHEETS)[i] === key);
+function parseFuente(val) {
+  if (!val) return '—';
+  const v = val.trim().toUpperCase();
+  if (v === 'PSP') return 'PSP';
+  if (v === 'BUSKEDA' || v === 'BÚSQUEDA' || v === 'BUSQUEDA') return 'BÚSQUEDA';
+  return val.trim();
+}
+
+function parseDate(val) {
+  if (!val) return null;
+  // Handle Excel serial numbers
+  const num = parseFloat(val);
+  if (!isNaN(num) && num > 40000) {
+    const d = new Date((num - 25569) * 86400 * 1000);
+    return d.toISOString().split('T')[0];
+  }
+  // Try direct parse
+  const d = new Date(val);
+  if (!isNaN(d)) return d.toISOString().split('T')[0];
+  return val;
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('loadingState').style.display = 'flex';
+  document.getElementById('dashContent').style.display = 'none';
+  document.getElementById('errorState').style.display = 'none';
+  document.getElementById('syncStatus').textContent = '⟳ Actualizando...';
+
+  const url = SHEETS_CSV_URL + '&t=' + Date.now(); // cache-bust
+
+  Papa.parse(url, {
+    download: true,
+    header: false,
+    skipEmptyLines: true,
+    complete: function(results) {
+      const rows = results.data;
+      // Skip header row
+      allData = rows.slice(1)
+        .map(r => ({
+          nombre:  (r[COL.nombre]  || '').trim() || '(sin nombre)',
+          empresa: (r[COL.empresa] || '').trim() || '—',
+          fuente:  parseFuente(r[COL.fuente]),
+          fecha:   parseDate(r[COL.fecha]),
+          tarea:   (r[COL.tarea]   || '').trim() || '—',
+          cierre:  (r[COL.cierre]  || '').trim(),
+        }))
+        .filter(r => r.empresa !== '—' || r.nombre !== '(sin nombre)');
+
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dashContent').style.display = 'block';
+      document.getElementById('syncStatus').textContent =
+        '✓ Actualizado ' + new Date().toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+
+      renderAll();
+    },
+    error: function() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('syncStatus').textContent = '✗ Error de conexión';
+    }
   });
-  document.getElementById('fuenteFilter').value = 'TODOS';
-  document.getElementById('diasFilter').value = 'TODOS';
-  renderAll();
 }
 
+// ── FILTERS ───────────────────────────────────────────────────────────────────
 function getFiltered() {
   const fuente = document.getElementById('fuenteFilter').value;
-  const dias = document.getElementById('diasFilter').value;
-  let data = SHEETS[activeSheet].rows;
-  if (fuente !== 'TODOS') data = data.filter(r => r[2] === fuente);
-  if (dias !== 'TODOS') data = data.filter(r => daysDiff(r[3]) >= parseInt(dias));
-  return data;
+  const dias   = document.getElementById('diasFilter').value;
+  return allData.filter(r => {
+    if (fuente !== 'TODOS' && r.fuente !== fuente) return false;
+    if (dias !== 'TODOS' && daysDiff(r.fecha) < parseInt(dias)) return false;
+    return true;
+  });
 }
 
 function renderAll() {
@@ -493,80 +395,85 @@ function renderAll() {
   renderCharts(data);
 }
 
+// ── KPIs ──────────────────────────────────────────────────────────────────────
 function updateKPIs(data) {
-  const total = data.length;
-  const follow = data.filter(r => daysDiff(r[3]) > 10).length;
-  const psp = data.filter(r => r[2] === 'PSP').length;
-  const bus = data.filter(r => r[2] === 'BÚSQUEDA').length;
-  document.getElementById('kpi-total').textContent = total;
-  document.getElementById('kpi-total-sub').textContent = SHEETS[activeSheet].label;
+  const total  = data.length;
+  const follow = data.filter(r => daysDiff(r.fecha) > 10).length;
+  const psp    = data.filter(r => r.fuente === 'PSP').length;
+  const bus    = data.filter(r => r.fuente === 'BÚSQUEDA').length;
+  document.getElementById('kpi-total').textContent  = total;
   document.getElementById('kpi-follow').textContent = follow;
-  document.getElementById('kpi-psp').textContent = psp;
+  document.getElementById('kpi-psp').textContent    = psp;
+  document.getElementById('kpi-bus').textContent    = bus;
   document.getElementById('kpi-psp-pct').textContent = total ? Math.round(psp/total*100) + '% del total' : '—';
-  document.getElementById('kpi-bus').textContent = bus;
   document.getElementById('kpi-bus-pct').textContent = total ? Math.round(bus/total*100) + '% del total' : '—';
 }
 
+// ── TABLE ─────────────────────────────────────────────────────────────────────
 function renderTable(data) {
-  document.getElementById('countInfo').textContent = `(${data.length} registros)`;
+  document.getElementById('countInfo').textContent = '(' + data.length + ' registros)';
   const tbody = document.getElementById('tbody');
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#888780; padding:2rem">Sin registros para los filtros seleccionados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888780;padding:2rem">Sin registros para los filtros seleccionados</td></tr>';
     return;
   }
   tbody.innerHTML = data.map((r, i) => {
-    const dias = daysDiff(r[3]);
+    const dias = daysDiff(r.fecha);
     const diasClass = dias > 90 ? 'badge-alert' : dias > 30 ? 'badge-warn' : 'badge-ok';
-    const fuenteClass = r[2]==='PSP' ? 'badge-psp' : r[2]==='BÚSQUEDA' ? 'badge-bus' : 'badge-otros';
-    return `<tr>
-      <td style="color:#b4b2a9; font-size:11px">${i+1}</td>
-      <td style="font-weight:500">${r[0]}</td>
-      <td>${r[1]}</td>
-      <td><span class="badge ${fuenteClass}">${r[2]}</span></td>
-      <td style="color:#888780; font-size:12px">${r[3]}</td>
-      <td><span class="badge ${diasClass}">${dias} días</span></td>
-      <td class="tarea-text">${r[4]}</td>
-    </tr>`;
+    const fuenteClass = r.fuente === 'PSP' ? 'badge-psp' : r.fuente === 'BÚSQUEDA' ? 'badge-bus' : 'badge-otros';
+    const fechaLabel = r.fecha || '—';
+    const diasLabel = dias < 9999 ? dias + ' días' : '—';
+    return '<tr>' +
+      '<td style="color:#b4b2a9;font-size:11px">' + (i+1) + '</td>' +
+      '<td style="font-weight:500">' + r.nombre + '</td>' +
+      '<td>' + r.empresa + '</td>' +
+      '<td><span class="badge ' + fuenteClass + '">' + r.fuente + '</span></td>' +
+      '<td style="color:#888780;font-size:12px">' + fechaLabel + '</td>' +
+      '<td><span class="badge ' + diasClass + '">' + diasLabel + '</span></td>' +
+      '<td class="tarea-text">' + r.tarea + '</td>' +
+      '</tr>';
   }).join('');
 }
 
+// ── CHARTS ────────────────────────────────────────────────────────────────────
 function renderCharts(data) {
-  // Monthly
+  // Monthly activity
   const monthly = {};
   data.forEach(r => {
-    const d = new Date(r[3]);
+    if (!r.fecha) return;
+    const d = new Date(r.fecha);
+    if (isNaN(d)) return;
     const key = d.toLocaleDateString('es-PE', {month:'short', year:'2-digit'});
     monthly[key] = (monthly[key]||0) + 1;
   });
-  const mLabels = Object.keys(monthly);
-  const mData = Object.values(monthly);
 
   if (chartM) chartM.destroy();
   chartM = new Chart(document.getElementById('chartMensual'), {
     type: 'bar',
     data: {
-      labels: mLabels,
-      datasets: [{ data: mData, backgroundColor: '#3266ad', borderRadius: 4 }]
+      labels: Object.keys(monthly),
+      datasets: [{ data: Object.values(monthly), backgroundColor: '#3266ad', borderRadius: 4 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { font:{size:11}, color:'#888780', autoSkip: false, maxRotation: 45 }, grid: { display: false } },
-        y: { ticks: { font:{size:11}, color:'#888780', stepSize: 5 }, grid: { color:'rgba(136,135,128,0.15)' } }
+        x: { ticks: { font:{size:11}, color:'#888780', autoSkip:false, maxRotation:45 }, grid:{ display:false } },
+        y: { ticks: { font:{size:11}, color:'#888780', stepSize:5 }, grid:{ color:'rgba(136,135,128,0.15)' } }
       }
     }
   });
 
-  // Tasks
+  // Tasks donut
   const taskMap = {};
   data.forEach(r => {
-    const t = r[4].trim();
-    const key = t.toLowerCase().includes('feedback taller') ? 'Feedback Taller'
-               : t.toLowerCase().includes('demo') ? 'Demo'
-               : t.toLowerCase().includes('coaching') ? 'Coaching'
-               : t.toLowerCase().includes('orden') || t.toLowerCase().includes('taller ejecutado') ? 'Cierre/Ejecutado'
-               : 'Otros';
+    const t = (r.tarea||'').toLowerCase();
+    const key = t.includes('feedback taller') || t.includes('full day') ? 'Feedback Taller'
+              : t.includes('demo') ? 'Demo'
+              : t.includes('coaching') ? 'Coaching'
+              : t.includes('orden') || t.includes('ejecutado') ? 'Cierre/Ejecutado'
+              : t.includes('propuesta') ? 'Propuesta'
+              : 'Otros';
     taskMap[key] = (taskMap[key]||0)+1;
   });
 
@@ -577,7 +484,7 @@ function renderCharts(data) {
       labels: Object.keys(taskMap),
       datasets: [{
         data: Object.values(taskMap),
-        backgroundColor: ['#3266ad','#1D9E75','#534AB7','#3B6D11','#888780'],
+        backgroundColor: ['#3266ad','#1D9E75','#534AB7','#3B6D11','#BA7517','#888780'],
         borderWidth: 2, borderColor: '#fff'
       }]
     },
@@ -585,13 +492,14 @@ function renderCharts(data) {
       responsive: true, maintainAspectRatio: false,
       cutout: '55%',
       plugins: {
-        legend: { position: 'right', labels: { font:{size:11}, color:'#5F5E5A', boxWidth:10, padding:10 } }
+        legend: { position:'right', labels:{ font:{size:11}, color:'#5F5E5A', boxWidth:10, padding:10 } }
       }
     }
   });
 }
 
-renderAll();
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
