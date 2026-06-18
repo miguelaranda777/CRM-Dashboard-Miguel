@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard de Prospección CRM 2026</title>
+  <title>Dashboard Avanzado de Prospección CRM 2026</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
@@ -76,9 +76,13 @@
       gap: 16px;
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
+      background: #fff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 0.5px solid #e0dfd8;
     }
     .filter-group { display: flex; align-items: center; gap: 8px; }
-    .filter-group label { font-size: 13px; color: #5F5E5A; }
+    .filter-group label { font-size: 13px; color: #5F5E5A; font-weight: 500; }
     select {
       font-size: 13px;
       padding: 6px 10px;
@@ -106,13 +110,9 @@
     /* KPIs */
     .metrics {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
       margin-bottom: 1.5rem;
-    }
-    @media (max-width: 768px) {
-      .metrics { grid-template-columns: repeat(2, 1fr); }
-      .row2 { grid-template-columns: 1fr !important; }
     }
     .mc {
       background: #fff;
@@ -121,47 +121,89 @@
       padding: 1.1rem 1.25rem;
     }
     .mc-label { font-size: 11px; color: #888780; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
-    .mc-val { font-size: 28px; font-weight: 500; line-height: 1; color: #1a1a18; }
+    .mc-val { font-size: 26px; font-weight: 500; line-height: 1; color: #1a1a18; }
     .mc-val.alert { color: #A32D2D; }
+    .mc-val.success { color: #1D9E75; }
     .mc-sub { font-size: 11px; color: #888780; margin-top: 4px; }
-    .mc-alert-text { font-size: 11px; color: #A32D2D; margin-top: 4px; font-weight: 500; }
 
-    /* Charts */
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    /* Layout Sections */
+    .dashboard-grid { display: flex; flex-direction: column; gap: 24px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .row-leaderboard { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+    
+    @media (max-width: 1024px) {
+      .row2, .row-leaderboard { grid-template-columns: 1fr; }
+    }
+
     .card {
       background: #fff;
       border: 0.5px solid #e0dfd8;
       border-radius: 12px;
-      padding: 1.1rem 1.25rem;
+      padding: 1.25rem;
     }
-    .card-title { font-size: 13px; font-weight: 500; color: #5F5E5A; margin-bottom: 14px; }
-    .count-info { font-size: 11px; color: #888780; font-weight: 400; margin-left: 6px; }
+    .card.priority-card { border-left: 4px solid #BA7517; }
+    .card.success-card { border-left: 4px solid #1D9E75; background: #fafbfc; }
+    
+    .card-title { font-size: 14px; font-weight: 600; color: #1a1a18; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .count-info { font-size: 11px; color: #888780; font-weight: 400; }
 
-    /* Table */
-    .table-wrap { overflow-x: auto; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th {
-      font-size: 11px; font-weight: 500; color: #888780;
-      text-align: left; padding: 8px 10px;
-      border-bottom: 0.5px solid #e0dfd8;
-      white-space: nowrap;
+    /* Leaderboard Styles */
+    .leader-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
     }
-    td { padding: 9px 10px; border-bottom: 0.5px solid #f1f0e8; color: #1a1a18; vertical-align: middle; }
+    .leader-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: #fafaf8;
+      border: 0.5px solid #e0dfd8;
+      border-radius: 8px;
+    }
+    .leader-name { font-size: 13px; font-weight: 600; color: #222; }
+    .leader-meta { font-size: 11px; color: #666; }
+    .leader-count { background: #3266ad; color: #fff; font-size: 12px; font-weight: bold; padding: 2px 8px; border-radius: 12px; }
+    .leader-count.gold { background: #1D9E75; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th {
+      font-size: 11px; font-weight: 600; color: #888780;
+      text-align: left; padding: 10px;
+      border-bottom: 1.5px solid #e0dfd8;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+    td { padding: 10px; border-bottom: 0.5px solid #f1f0e8; color: #1a1a18; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #fafaf8; }
 
+    /* Badges */
     .badge {
       display: inline-block; font-size: 10px;
       padding: 3px 8px; border-radius: 5px;
-      font-weight: 500; white-space: nowrap;
+      font-weight: 600; white-space: nowrap;
+      text-transform: uppercase;
     }
     .badge-psp    { background: #E6F1FB; color: #0C447C; }
     .badge-bus    { background: #EAF3DE; color: #27500A; }
     .badge-otros  { background: #F1EFE8; color: #5F5E5A; }
-    .badge-alert  { background: #FCEBEB; color: #791F1F; }
+    
+    /* Estado Oportunidad Badges */
+    .status-propuesta { background: #FAEEDA; color: #633806; border: 0.5px solid #f0d3a1; }
+    .status-vendido   { background: #EAF3DE; color: #27500A; border: 0.5px solid #cce4b4; }
+    .status-prospeccion { background: #E6F1FB; color: #0C447C; border: 0.5px solid #b3d4f5; }
+    .status-perdido   { background: #FCEBEB; color: #791F1F; border: 0.5px solid #f9c7c7; }
+    .status-default   { background: #F1EFE8; color: #5F5E5A; }
+
+    .badge-alert  { background: #FCEBEB; color: #791F1F; font-weight: bold; }
     .badge-warn   { background: #FAEEDA; color: #633806; }
-    .badge-ok     { background: #EAF3DE; color: #27500A; }
-    .tarea-text   { font-size: 11px; color: #5F5E5A; max-width: 220px; }
+    .tarea-text   { font-size: 11.5px; color: #5F5E5A; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .consultora-text { font-weight: 500; color: #444; }
 
     footer { text-align: center; padding: 2rem; font-size: 11px; color: #b4b2a9; }
   </style>
@@ -172,99 +214,141 @@
   <div class="logo">
     <div class="logo-dot"></div>
     <div>
-      <div class="logo-text">CRM Dashboard</div>
-      <div class="logo-sub">Seguimiento de prospección</div>
+      <div class="logo-text">CRM BI Dashboard Analytics</div>
+      <div class="logo-sub">Panel Estratégico Comercial</div>
     </div>
   </div>
   <div class="header-right">
     <div id="fechaHoy"></div>
-    <div class="header-sync" id="syncStatus">⟳ Cargando datos...</div>
+    <div class="header-sync" id="syncStatus">⟳ Iniciando lectura de datos...</div>
   </div>
 </header>
 
 <div class="main">
-  <h1 class="page-title">Dashboard de Prospección 2026</h1>
-  <p class="page-sub">Datos en tiempo real desde Google Sheets · Se actualiza al abrir la página</p>
+  <h1 class="page-title">Dashboard Operativo de Prospección 2026</h1>
+  <p class="page-sub">Consolidación avanzada multi-indicador desde ecosistema Google Sheets</p>
 
-  <!-- Loading state -->
   <div class="loading" id="loadingState">
     <div class="spinner"></div>
-    <div class="loading-text">Conectando con Google Sheets...</div>
+    <div class="loading-text">Conectando y parseando base de datos comercial...</div>
   </div>
 
-  <!-- Error state -->
   <div class="error-box" id="errorState" style="display:none">
-    <strong>No se pudo cargar los datos</strong>
-    Verifica que tu Google Sheets esté publicado correctamente en Archivo → Publicar en la web.
+    <strong>Error crítico de sincronización externa</strong>
+    El origen de datos remoto no responde. Asegúrate de haber publicado la pestaña correcta como CSV.
     <br><br>
-    <button class="btn-refresh" onclick="loadData()">Reintentar</button>
+    <button class="btn-refresh" onclick="loadData()">Reintentar sincronización</button>
   </div>
 
-  <!-- Dashboard (hidden until data loads) -->
-  <div id="dashContent" style="display:none">
+  <div id="dashContent" style="display:none" class="dashboard-grid">
 
     <div class="filters">
       <div class="filter-group">
-        <label>Fuente:</label>
+        <label>Consultora Asignada:</label>
+        <select id="consultoraFilter" onchange="renderAll()">
+          <option value="TODOS">Todas las Consultoras</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Origen Fuente:</label>
         <select id="fuenteFilter" onchange="renderAll()">
-          <option value="TODOS">Todos</option>
+          <option value="TODOS">Todas las Fuentes</option>
           <option value="PSP">PSP</option>
           <option value="BÚSQUEDA">Búsqueda</option>
         </select>
       </div>
       <div class="filter-group">
-        <label>Días sin contacto:</label>
+        <label>Inactividad:</label>
         <select id="diasFilter" onchange="renderAll()">
-          <option value="TODOS">Todos</option>
+          <option value="TODOS">Cualquier ciclo</option>
+          <option value="15">+15 días</option>
           <option value="30">+30 días</option>
           <option value="60">+60 días</option>
-          <option value="90">+90 días</option>
         </select>
       </div>
-      <button class="btn-refresh" onclick="loadData()">↻ Actualizar datos</button>
+      <button class="btn-refresh" onclick="loadData()">↻ Forzar Refresco</button>
     </div>
 
     <div class="metrics">
       <div class="mc">
-        <div class="mc-label">Total prospectos</div>
+        <div class="mc-label">Pipeline Activo</div>
         <div class="mc-val" id="kpi-total">—</div>
-        <div class="mc-sub">hoja CRM Personal</div>
+        <div class="mc-sub">Excluye cuentas ganadas</div>
       </div>
       <div class="mc">
-        <div class="mc-label">Requieren seguimiento</div>
+        <div class="mc-label">Urgencia Crítica</div>
         <div class="mc-val alert" id="kpi-follow">—</div>
-        <div class="mc-alert-text">+10 días sin contacto</div>
+        <div class="mc-sub">+15 días sin interacción</div>
       </div>
       <div class="mc">
-        <div class="mc-label">Fuente PSP</div>
-        <div class="mc-val" id="kpi-psp">—</div>
-        <div class="mc-sub" id="kpi-psp-pct">—</div>
+        <div class="mc-label">Propuestas en Tránsito</div>
+        <div class="mc-val" id="kpi-propuestas">—</div>
+        <div class="mc-sub">Cuentas calientes</div>
       </div>
       <div class="mc">
-        <div class="mc-label">Fuente Búsqueda</div>
-        <div class="mc-val" id="kpi-bus">—</div>
-        <div class="mc-sub" id="kpi-bus-pct">—</div>
+        <div class="mc-label">Eficiencia Comercial</div>
+        <div class="mc-val success" id="kpi-winrate">—</div>
+        <div class="mc-sub">Ratio conversión histórico</div>
+      </div>
+    </div>
+
+    <div class="row-leaderboard">
+      <div class="card">
+        <div class="card-title">⭐ Rendimiento Comercial (Columna E)</div>
+        <div class="leader-box" id="leaderboardBox">
+          </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Funnel de Conversión Global (Estado Oportunidad Columna I)</div>
+        <div style="position:relative; width:100%; height:150px;">
+          <canvas id="chartFunnel" role="img"></canvas>
+        </div>
       </div>
     </div>
 
     <div class="row2">
       <div class="card">
-        <div class="card-title">Actividad mensual — contactos</div>
-        <div style="position:relative; width:100%; height:200px;">
-          <canvas id="chartMensual" role="img" aria-label="Actividad mensual de prospectos"></canvas>
+        <div class="card-title">Distribución de Leads Activos por Consultora</div>
+        <div style="position:relative; width:100%; height:220px;">
+          <canvas id="chartConsultoras" role="img"></canvas>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Distribución de tareas siguientes</div>
-        <div style="position:relative; width:100%; height:200px;">
-          <canvas id="chartTareas" role="img" aria-label="Distribución de tareas pendientes"></canvas>
+        <div class="card-title">Foco de Próxima Acción Pendiente</div>
+        <div style="position:relative; width:100%; height:220px;">
+          <canvas id="chartTareas" role="img"></canvas>
         </div>
+      </div>
+    </div>
+
+    <div class="card priority-card">
+      <div class="card-title">
+        🔥 Matriz de Prioridad Inmediata de Contacto
+        <span class="count-info" id="countPriority">Acción Comercial Urgente</span>
+      </div>
+      <p style="font-size:12px; color:#666; margin-bottom:12px;">Muestra las cuentas priorizadas estrictamente por su tiempo de inactividad cronológico, situando arriba las que llevan más días sin interacción.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Orden</th>
+              <th>Prospecto / Empresa</th>
+              <th>Consultora (E)</th>
+              <th>Fuente</th>
+              <th>Estado Oportunidad (I)</th>
+              <th>Último Contacto</th>
+              <th>Días Desatendido</th>
+              <th>Siguiente Tarea</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPriority"></tbody>
+        </table>
       </div>
     </div>
 
     <div class="card">
       <div class="card-title">
-        Prospectos activos
+        Base General de Seguimiento Activo
         <span class="count-info" id="countInfo"></span>
       </div>
       <div class="table-wrap">
@@ -274,10 +358,11 @@
               <th>#</th>
               <th>Prospecto</th>
               <th>Empresa</th>
+              <th>Consultora (E)</th>
               <th>Fuente</th>
-              <th>Último contacto</th>
-              <th>Días sin contacto</th>
-              <th>Tarea siguiente</th>
+              <th>Estado Oportunidad (I)</th>
+              <th>Último Contacto</th>
+              <th>Acción Siguiente</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -285,26 +370,56 @@
       </div>
     </div>
 
-  </div><!-- /dashContent -->
+    <div class="card success-card">
+      <div class="card-title">
+        🏆 Registro de Éxito Comercial (Cuentas en Estado 'Vendido')
+        <span class="count-info" id="countVendido">Historial de Cierre</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cliente Exitoso</th>
+              <th>Empresa</th>
+              <th>Consultora Responsable</th>
+              <th>Origen Canal</th>
+              <th>Estatus Final (I)</th>
+              <th>Comentarios / Cierre</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyVendido"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<footer>Dashboard CRM · Datos en tiempo real desde Google Sheets</footer>
+<footer>CRM Inteligencia de Datos Corporativa · Conexión Segura HTTPS Restrita</footer>
 
 <script>
-// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
-// Si cambias de hoja en Google Sheets, reemplaza solo esta URL
+// ── CONFIGURACIÓN DEL ENLACE DE DATOS COMERCIALES ─────────────────────────────
 const SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSxu9jDdj1avcSfCB_9tG6KmtY3I6QP0HHifzk-kG4AY818-vGao6aU0dIYVQk1TA/pub?output=csv';
 
 const TODAY = new Date();
 document.getElementById('fechaHoy').textContent =
   TODAY.toLocaleDateString('es-PE', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-let allData = [];
-let chartM, chartT;
+let allRawData = [];
+let chartT, chartF, chartC;
 
-// ── COLUMNAS ESPERADAS (basadas en tu Excel) ──────────────────────────────────
-// Nombre | Empresa | Email | Teléfono | Fuente | Fecha último contacto | Seguimiento | Tarea | Cierre
-const COL = { nombre:0, empresa:1, fuente:4, fecha:5, tarea:7, cierre:8 };
+// ── MAPEADO ABSOLUTO CORREGIDO (A=0, B=1, E=4, F=5, G=6, H=7, I=8) ──
+const COL = { 
+  nombre: 0,      // Columna A
+  empresa: 1,     // Columna B
+  consultora: 4,  // Columna E (Mapeo exacto de Consultoras)
+  fuente: 4,      // Columna E (Origen derivado del canal de prospección)
+  fecha: 5,       // Columna F
+  tarea: 6,       // Columna G
+  cierre: 7,      // Columna H
+  estado: 8       // Columna I (Estado de Oportunidad)
+};
 
 function daysDiff(dateStr) {
   if (!dateStr) return 9999;
@@ -314,35 +429,42 @@ function daysDiff(dateStr) {
 }
 
 function parseFuente(val) {
-  if (!val) return '—';
+  if (!val) return 'OTROS';
   const v = val.trim().toUpperCase();
   if (v === 'PSP') return 'PSP';
   if (v === 'BUSKEDA' || v === 'BÚSQUEDA' || v === 'BUSQUEDA') return 'BÚSQUEDA';
   return val.trim();
 }
 
+function parseEstado(val) {
+  if (!val) return 'PROSPECCIÓN';
+  const v = val.trim().toUpperCase();
+  if (v.includes('PROPUESTA')) return 'PROPUESTA ENVIADA';
+  if (v.includes('VENDIDO') || v.includes('GANADO') || v.includes('CIERRE OK') || v.includes('SI')) return 'VENDIDO';
+  if (v.includes('PERDIDO') || v.includes('RECHAZADO') || v.includes('NO')) return 'PERDIDO';
+  return v;
+}
+
 function parseDate(val) {
   if (!val) return null;
-  // Handle Excel serial numbers
   const num = parseFloat(val);
   if (!isNaN(num) && num > 40000) {
     const d = new Date((num - 25569) * 86400 * 1000);
     return d.toISOString().split('T')[0];
   }
-  // Try direct parse
   const d = new Date(val);
   if (!isNaN(d)) return d.toISOString().split('T')[0];
   return val;
 }
 
-// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+// ── EXTRACCIÓN Y CARGA ASÍNCRONA VIA PAPAPARSE ──────────────────────────────
 async function loadData() {
   document.getElementById('loadingState').style.display = 'flex';
   document.getElementById('dashContent').style.display = 'none';
   document.getElementById('errorState').style.display = 'none';
-  document.getElementById('syncStatus').textContent = '⟳ Actualizando...';
+  document.getElementById('syncStatus').textContent = '⟳ Conectando servidor...';
 
-  const url = SHEETS_CSV_URL + '&t=' + Date.now(); // cache-bust
+  const url = SHEETS_CSV_URL + '&t=' + Date.now();
 
   Papa.parse(url, {
     download: true,
@@ -350,38 +472,70 @@ async function loadData() {
     skipEmptyLines: true,
     complete: function(results) {
       const rows = results.data;
-      // Skip header row
-      allData = rows.slice(1)
-        .map(r => ({
-          nombre:  (r[COL.nombre]  || '').trim() || '(sin nombre)',
-          empresa: (r[COL.empresa] || '').trim() || '—',
-          fuente:  parseFuente(r[COL.fuente]),
-          fecha:   parseDate(r[COL.fecha]),
-          tarea:   (r[COL.tarea]   || '').trim() || '—',
-          cierre:  (r[COL.cierre]  || '').trim(),
-        }))
-        .filter(r => r.empresa !== '—' || r.nombre !== '(sin nombre)');
+      if(rows.length <= 1) {
+        showError();
+        return;
+      }
+      
+      allRawData = rows.slice(1).map(r => ({
+        nombre:     (r[COL.nombre]     || '').trim() || '(Sin Nombre)',
+        empresa:    (r[COL.empresa]    || '').trim() || '—',
+        consultora: (r[COL.consultora] || 'No Asignado').trim(),
+        fuente:     parseFuente(r[COL.fuente]),
+        fecha:      parseDate(r[COL.fecha]),
+        estado:     parseEstado(r[COL.estado]),
+        tarea:      (r[COL.tarea]      || '').trim() || 'Sin acción asignada',
+        cierre:     (r[COL.cierre]     || '').trim() || '—'
+      })).filter(r => r.empresa !== '—' || r.nombre !== '(Sin Nombre)');
 
+      populateConsultoraFilter();
+      
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('dashContent').style.display = 'block';
       document.getElementById('syncStatus').textContent =
-        '✓ Actualizado ' + new Date().toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
+        '✓ Sincronizado ' + new Date().toLocaleTimeString('es-PE', {hour:'2-digit', minute:'2-digit'});
 
       renderAll();
     },
     error: function() {
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('errorState').style.display = 'block';
-      document.getElementById('syncStatus').textContent = '✗ Error de conexión';
+      showError();
     }
   });
 }
 
-// ── FILTERS ───────────────────────────────────────────────────────────────────
-function getFiltered() {
-  const fuente = document.getElementById('fuenteFilter').value;
-  const dias   = document.getElementById('diasFilter').value;
-  return allData.filter(r => {
+function showError() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'block';
+  document.getElementById('syncStatus').textContent = '✗ Falla de Enlace';
+}
+
+function populateConsultoraFilter() {
+  const filter = document.getElementById('consultoraFilter');
+  const currentVal = filter.value;
+  filter.innerHTML = '<option value="TODOS">Todas las Consultoras</option>';
+  
+  const consultoras = [...new Set(allRawData.map(r => r.consultora))].sort();
+  consultoras.forEach(c => {
+    if(c) {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      filter.appendChild(opt);
+    }
+  });
+  if(consultoras.includes(currentVal)) filter.value = currentVal;
+}
+
+// ── CONTROLADORES DE FILTROS APLICADOS ────────────────────────────────────────
+function getFilteredDataset(includeVendido = false) {
+  const consultora = document.getElementById('consultoraFilter').value;
+  const fuente     = document.getElementById('fuenteFilter').value;
+  const dias       = document.getElementById('diasFilter').value;
+
+  return allRawData.filter(r => {
+    if (r.estado === 'VENDIDO' && !includeVendido) return false;
+    
+    if (consultora !== 'TODOS' && r.consultora !== consultora) return false;
     if (fuente !== 'TODOS' && r.fuente !== fuente) return false;
     if (dias !== 'TODOS' && daysDiff(r.fecha) < parseInt(dias)) return false;
     return true;
@@ -389,91 +543,219 @@ function getFiltered() {
 }
 
 function renderAll() {
-  const data = getFiltered();
-  updateKPIs(data);
-  renderTable(data);
-  renderCharts(data);
+  const activeDataset = getFilteredDataset(false);
+  const totalDataset = getFilteredDataset(true);
+
+  updateKPIs(activeDataset, totalDataset);
+  renderLeaderboard(totalDataset);
+  renderPriorityTable(activeDataset);
+  renderGeneralTable(activeDataset);
+  renderVendidoTable(totalDataset);
+  renderCharts(activeDataset, totalDataset);
 }
 
-// ── KPIs ──────────────────────────────────────────────────────────────────────
-function updateKPIs(data) {
-  const total  = data.length;
-  const follow = data.filter(r => daysDiff(r.fecha) > 10).length;
-  const psp    = data.filter(r => r.fuente === 'PSP').length;
-  const bus    = data.filter(r => r.fuente === 'BÚSQUEDA').length;
-  document.getElementById('kpi-total').textContent  = total;
-  document.getElementById('kpi-follow').textContent = follow;
-  document.getElementById('kpi-psp').textContent    = psp;
-  document.getElementById('kpi-bus').textContent    = bus;
-  document.getElementById('kpi-psp-pct').textContent = total ? Math.round(psp/total*100) + '% del total' : '—';
-  document.getElementById('kpi-bus-pct').textContent = total ? Math.round(bus/total*100) + '% del total' : '—';
+// ── ANALÍTICA DE TABLEROS (KPIs) ─────────────────────────────────────────────
+function updateKPIs(active, total) {
+  const totalActivos = active.length;
+  const critical = active.filter(r => daysDiff(r.fecha) > 15).length;
+  const propuestas = active.filter(r => r.estado === 'PROPUESTA ENVIADA').length;
+  
+  const vendidosTotal = total.filter(r => r.estado === 'VENDIDO').length;
+  const historicoTotal = total.length;
+  const winRate = historicoTotal ? Math.round((vendidosTotal / historicoTotal) * 100) : 0;
+
+  document.getElementById('kpi-total').textContent  = totalActivos;
+  document.getElementById('kpi-follow').textContent = critical;
+  document.getElementById('kpi-propuestas').textContent = propuestas;
+  document.getElementById('kpi-winrate').textContent = winRate + '%';
 }
 
-// ── TABLE ─────────────────────────────────────────────────────────────────────
-function renderTable(data) {
-  document.getElementById('countInfo').textContent = '(' + data.length + ' registros)';
-  const tbody = document.getElementById('tbody');
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888780;padding:2rem">Sin registros para los filtros seleccionados</td></tr>';
+// ── SECCIÓN EXCLUSIVA DE SECTORIZACIÓN ARITMÉTICA POR CONSULTORA (COLUMNA E) ──
+function renderLeaderboard(totalDataset) {
+  const container = document.getElementById('leaderboardBox');
+  
+  const activeMap = {};
+  const winMap = {};
+  
+  totalDataset.forEach(r => {
+    const c = r.consultora || 'No Asignado';
+    if(r.estado === 'VENDIDO') {
+      winMap[c] = (winMap[c] || 0) + 1;
+    } else if (r.estado !== 'PERDIDO') {
+      activeMap[c] = (activeMap[c] || 0) + 1;
+    }
+  });
+
+  let topActiveName = 'Ninguna', topActiveCount = 0;
+  let topWinName = 'Ninguna', topWinCount = 0;
+
+  Object.keys(activeMap).forEach(name => {
+    if(activeMap[name] > topActiveCount) { topActiveCount = activeMap[name]; topActiveName = name; }
+  });
+  Object.keys(winMap).forEach(name => {
+    if(winMap[name] > topWinCount) { topWinCount = winMap[name]; topWinName = name; }
+  });
+
+  container.innerHTML = `
+    <div class="leader-item">
+      <div>
+        <div class="leader-name">🔥 ${topActiveName}</div>
+        <div class="leader-meta">Mayor volumen de prospectos activos</div>
+      </div>
+      <div class="leader-count">${topActiveCount} leads</div>
+    </div>
+    <div class="leader-item" style="border-left: 4px solid #1D9E75;">
+      <div>
+        <div class="leader-name">🏆 ${topWinName}</div>
+        <div class="leader-meta">Líder en conversiones ("Vendido")</div>
+      </div>
+      <div class="leader-count gold">${topWinCount} cierres</div>
+    </div>
+  `;
+}
+
+// ── LÓGICA DE RENDERIZADO DE TABLAS ──────────────────────────────────────────
+function getStatusStyle(estado) {
+  if (estado === 'PROPUESTA ENVIADA') return 'status-propuesta';
+  if (estado === 'VENDIDO') return 'status-vendido';
+  if (estado === 'PERDIDO') return 'status-perdido';
+  if (estado === 'PROSPECCIÓN') return 'status-prospeccion';
+  return 'status-default';
+}
+
+function renderPriorityTable(data) {
+  const tbody = document.getElementById('tbodyPriority');
+  
+  // CORRECCIÓN CRÍTICA: Ordenamiento puro descendente basado en los días desde el último contacto.
+  // Mientras más grande sea el retorno de daysDiff(), significa que la fecha está más lejana en el pasado.
+  const priorityData = [...data].sort((a, b) => {
+    return daysDiff(b.fecha) - daysDiff(a.fecha);
+  });
+
+  if (!priorityData.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#888780;padding:1.5rem">No hay alertas de acción urgentes en este segmento.</td></tr>';
     return;
   }
-  tbody.innerHTML = data.map((r, i) => {
+
+  tbody.innerHTML = priorityData.slice(0, 5).map((r, i) => {
     const dias = daysDiff(r.fecha);
-    const diasClass = dias > 90 ? 'badge-alert' : dias > 30 ? 'badge-warn' : 'badge-ok';
-    const fuenteClass = r.fuente === 'PSP' ? 'badge-psp' : r.fuente === 'BÚSQUEDA' ? 'badge-bus' : 'badge-otros';
-    const fechaLabel = r.fecha || '—';
-    const diasLabel = dias < 9999 ? dias + ' días' : '—';
+    const diasClass = dias > 45 ? 'badge-alert' : 'badge-warn';
+    const fLabel = r.fecha || 'Sin registrar';
+    
     return '<tr>' +
-      '<td style="color:#b4b2a9;font-size:11px">' + (i+1) + '</td>' +
+      '<td style="font-weight:bold; color:#BA7517;">🔥 #' + (i+1) + '</td>' +
+      '<td><strong>' + r.nombre + '</strong><br><span style="font-size:11px;color:#666">' + r.empresa + '</span></td>' +
+      '<td class="consultora-text">' + r.consultora + '</td>' +
+      '<td><span class="badge badge-otros">' + r.fuente + '</span></td>' +
+      '<td><span class="badge ' + getStatusStyle(r.estado) + '">' + r.estado + '</span></td>' +
+      '<td style="font-size:11.5px">' + fLabel + '</td>' +
+      '<td><span class="badge ' + diasClass + '">' + (dias === 9999 ? 'Indefinido' : dias + ' días') + '</span></td>' +
+      '<td class="tarea-text"><strong>' + r.tarea + '</strong></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderGeneralTable(data) {
+  document.getElementById('countInfo').textContent = '(' + data.length + ' leads en proceso)';
+  const tbody = document.getElementById('tbody');
+  
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem">Ningún registro activo coincide con el filtro.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map((r, i) => {
+    const fuenteClass = r.fuente === 'PSP' ? 'badge-psp' : r.fuente === 'BÚSQUEDA' ? 'badge-bus' : 'badge-otros';
+    return '<tr>' +
+      '<td style="color:#b4b2a9;">' + (i+1) + '</td>' +
       '<td style="font-weight:500">' + r.nombre + '</td>' +
       '<td>' + r.empresa + '</td>' +
+      '<td class="consultora-text">' + r.consultora + '</td>' +
       '<td><span class="badge ' + fuenteClass + '">' + r.fuente + '</span></td>' +
-      '<td style="color:#888780;font-size:12px">' + fechaLabel + '</td>' +
-      '<td><span class="badge ' + diasClass + '">' + diasLabel + '</span></td>' +
+      '<td><span class="badge ' + getStatusStyle(r.estado) + '">' + r.estado + '</span></td>' +
+      '<td style="color:#666; font-size:11.5px">' + (r.fecha || '—') + '</td>' +
       '<td class="tarea-text">' + r.tarea + '</td>' +
       '</tr>';
   }).join('');
 }
 
-// ── CHARTS ────────────────────────────────────────────────────────────────────
-function renderCharts(data) {
-  // Monthly activity
-  const monthly = {};
-  data.forEach(r => {
-    if (!r.fecha) return;
-    const d = new Date(r.fecha);
-    if (isNaN(d)) return;
-    const key = d.toLocaleDateString('es-PE', {month:'short', year:'2-digit'});
-    monthly[key] = (monthly[key]||0) + 1;
-  });
+function renderVendidoTable(totalData) {
+  const vendidos = totalData.filter(r => r.estado === 'VENDIDO');
+  document.getElementById('countVendido').textContent = '(' + vendidos.length + ' cierres exitosos)';
+  const tbody = document.getElementById('tbodyVendido');
 
-  if (chartM) chartM.destroy();
-  chartM = new Chart(document.getElementById('chartMensual'), {
+  if (!vendidos.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888780;padding:1.5rem">Aún no se reportan cierres concretados en esta selección.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = vendidos.map((r, i) => {
+    return '<tr>' +
+      '<td style="color:#1D9E75;font-weight:bold;">🏆 ' + (i+1) + '</td>' +
+      '<td style="font-weight:500">' + r.nombre + '</td>' +
+      '<td><strong>' + r.empresa + '</strong></td>' +
+      '<td class="consultora-text">' + r.consultora + '</td>' +
+      '<td><span class="badge badge-psp">' + r.fuente + '</span></td>' +
+      '<td><span class="badge status-vendido">' + r.estado + '</span></td>' +
+      '<td style="font-style:italic;color:#444">' + r.cierre + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ── CONTROL MÓDULO ESTRATÉGICO DE GRÁFICOS (CHART.JS v4) ──────────────────────
+function renderCharts(active, total) {
+  
+  const funnelMap = {};
+  total.forEach(r => { funnelMap[r.estado] = (funnelMap[r.estado] || 0) + 1; });
+  
+  if (chartF) chartF.destroy();
+  chartF = new Chart(document.getElementById('chartFunnel'), {
     type: 'bar',
     data: {
-      labels: Object.keys(monthly),
-      datasets: [{ data: Object.values(monthly), backgroundColor: '#3266ad', borderRadius: 4 }]
+      labels: Object.keys(funnelMap),
+      datasets: [{
+        label: 'Cuentas',
+        data: Object.values(funnelMap),
+        backgroundColor: ['#3266ad', '#BA7517', '#1D9E75', '#A32D2D', '#888780'],
+        borderRadius: 6
+      }]
     },
     options: {
+      indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { font:{size:11}, color:'#888780', autoSkip:false, maxRotation:45 }, grid:{ display:false } },
-        y: { ticks: { font:{size:11}, color:'#888780', stepSize:5 }, grid:{ color:'rgba(136,135,128,0.15)' } }
-      }
+      scales: { x: { ticks: { stepSize: 1 } } }
     }
   });
 
-  // Tasks donut
+  const consultoraMap = {};
+  active.forEach(r => { consultoraMap[r.consultora] = (consultoraMap[r.consultora] || 0) + 1; });
+
+  if (chartC) chartC.destroy();
+  chartC = new Chart(document.getElementById('chartConsultoras'), {
+    type: 'polarArea',
+    data: {
+      labels: Object.keys(consultoraMap),
+      datasets: [{
+        data: Object.values(consultoraMap),
+        backgroundColor: ['rgba(50, 102, 173, 0.75)', 'rgba(29, 158, 117, 0.75)', 'rgba(186, 117, 23, 0.75)', 'rgba(136, 135, 128, 0.75)']
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }
+    }
+  });
+
   const taskMap = {};
-  data.forEach(r => {
-    const t = (r.tarea||'').toLowerCase();
-    const key = t.includes('feedback taller') || t.includes('full day') ? 'Feedback Taller'
-              : t.includes('demo') ? 'Demo'
+  active.forEach(r => {
+    const t = r.tarea.toLowerCase();
+    const key = t.includes('feedback') || t.includes('taller') ? 'Feedback Taller'
+              : t.includes('demo') ? 'Demo / Presentación'
               : t.includes('coaching') ? 'Coaching'
-              : t.includes('orden') || t.includes('ejecutado') ? 'Cierre/Ejecutado'
-              : t.includes('propuesta') ? 'Propuesta'
-              : 'Otros';
+              : t.includes('propuesta') ? 'Propuesta Comercial'
+              : t.includes('llamada') || t.includes('telefon') ? 'Llamada'
+              : 'Seguimientos Varios';
     taskMap[key] = (taskMap[key]||0)+1;
   });
 
@@ -484,21 +766,18 @@ function renderCharts(data) {
       labels: Object.keys(taskMap),
       datasets: [{
         data: Object.values(taskMap),
-        backgroundColor: ['#3266ad','#1D9E75','#534AB7','#3B6D11','#BA7517','#888780'],
-        borderWidth: 2, borderColor: '#fff'
+        backgroundColor: ['#3266ad','#1D9E75','#534AB7','#BA7517','#4b79b7','#888780'],
+        borderWidth: 1.5
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      cutout: '55%',
-      plugins: {
-        legend: { position:'right', labels:{ font:{size:11}, color:'#5F5E5A', boxWidth:10, padding:10 } }
-      }
+      cutout: '60%',
+      plugins: { legend: { position:'right', labels:{ font:{size:10.5}, boxWidth:10 } } }
     }
   });
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
 loadData();
 </script>
 </body>
